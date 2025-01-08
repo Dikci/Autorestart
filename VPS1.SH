@@ -31,6 +31,7 @@ containers=(
     "nwaku-compose-postgres-exporter-1"
     "nwaku-compose-postgres-1"
     "nwaku-compose-prometheus-1"
+    "fizz-fizz-1"
 )
 
 # Бесконечный цикл проверки
