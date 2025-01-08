@@ -40,6 +40,7 @@ containers=(
     "nwaku-compose-prometheus-1"
     "hubble-hubble-1"
     "hubble-grafana-1"
+    "fizz-fizz-1"
 )
 
 # Бесконечный цикл проверки
