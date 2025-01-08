@@ -38,6 +38,7 @@ containers=(
     "unichain-node-op-node-1"
     "unichain-node-execution-client-1"
     "nwaku-compose-prometheus-1"
+    "fizz-fizz-1"
 )
 
 # Бесконечный цикл проверки
