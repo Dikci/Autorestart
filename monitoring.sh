@@ -91,12 +91,14 @@ function check_and_create_tmux_session_cysic() {
 containers=(
     "brinxai_relay"
     "root-worker-1"
+    "brinxai-worker-nodes-worker-1"
     "hyperlane"
     "elixir-node"
     "nwaku-compose-grafana-1"
     "nwaku-compose-waku-frontend-1"
     "nwaku-compose-postgres-exporter-1"
     "nwaku-compose-postgres-1"
+    "nwaku-compose-nwaku-1"
     "docker-watchtower-1"
     "mongodb"
     "ipfs_node"
@@ -108,6 +110,8 @@ containers=(
     "hubble-hubble-1"
     "hubble-grafana-1"
     "fizz-fizz-1"
+    "titan-edge-container"
+    "nifty_newton"
 )
 
 # Список сервисов для проверки
@@ -115,6 +119,8 @@ services=(
     "sonaricd.service"
     "docker.service"
     "blockmesh.service"
+    "exporterd.service"
+    "gaianet.service"
 )
 
 # Бесконечный цикл проверки
