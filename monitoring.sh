@@ -39,26 +39,6 @@ function check_and_restart_service() {
     fi
 }
 
-# Функция для проверки порта 8080
-function check_and_restart_node_on_port() {
-    lsof_output=$(sudo lsof -i :8080)
-
-    # Проверка, содержится ли слово "node" в выводе
-    if [[ ! "$lsof_output" =~ "node" ]]; then
-        echo "Слово 'node' не найдено в выводе команды lsof. Выполняется остановка и запуск..."
-
-        # Остановка node
-        cd ~/ubuntu-node || { echo "Не удалось перейти в каталог ubuntu-node"; return; }
-        sudo bash manager.sh down
-
-        # Запуск node
-        sudo bash manager.sh up
-        echo "Процесс node перезапущен."
-    else
-        echo "Слово 'node' найдено в выводе команды lsof. Статус порта 8080 корректен."
-    fi
-}
-
 # Функция для проверки наличия сессии tmux с именем "rivalz"
 function check_and_create_tmux_session_rivalz() {
     tmux_sessions=$(tmux ls 2>/dev/null)
@@ -99,6 +79,7 @@ containers=(
     "nwaku-compose-postgres-exporter-1"
     "nwaku-compose-postgres-1"
     "nwaku-compose-nwaku-1"
+    "nwaku-compose-prometheus-1"
     "docker-watchtower-1"
     "mongodb"
     "ipfs_node"
@@ -106,12 +87,11 @@ containers=(
     "gaianet_chat"
     "unichain-node-op-node-1"
     "unichain-node-execution-client-1"
-    "nwaku-compose-prometheus-1"
     "hubble-hubble-1"
     "hubble-grafana-1"
-    "fizz-fizz-1"
     "titan-edge-container"
     "nifty_newton"
+    "privasea-node"
 )
 
 # Список сервисов для проверки
@@ -136,10 +116,6 @@ while true; do
     for service in "${services[@]}"; do
         check_and_restart_service "$service"
     done
-
-    # Проверка порта 8080 на наличие процесса node
-    echo "Проверка порта 8080 на наличие процесса node..."
-    check_and_restart_node_on_port
 
     # Проверка наличия сессии tmux с именем "rivalz"
     echo "Проверка наличия сессии tmux 'rivalz'..."
