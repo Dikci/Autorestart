@@ -1,130 +1,204 @@
 #!/bin/bash
 
-# Функция для проверки и перезапуска контейнера
-function check_and_restart_container() {
-    local container_name=$1
-    container_status=$(docker inspect -f '{{.State.Status}}' "$container_name" 2>/dev/null)
+# === Лог-файл ===
+LOG_FILE="/var/log/monitoring.log"
+LAST_CLEAR_FILE="/tmp/last_log_clear"  # Файл для хранения времени последней очистки
 
-    if [ -z "$container_status" ]; then
-        echo "Контейнер $container_name не найден."
-    elif [ "$container_status" == "stopped" ] || [ "$container_status" == "exited" ] || [ "$container_status" == "created" ]; then
-        echo "Контейнер $container_name имеет статус $container_status. Выполняется перезапуск..."
-        docker restart "$container_name"
-        if [ $? -eq 0 ]; then
-            echo "Контейнер $container_name успешно перезапущен."
+# === Шардиум проверка ноды ===
+log "🔍 Проверка Shardeum..."
+function get_node_status() {
+    STATUS=$(docker exec -it shardeum-validator operator-cli status | grep state | awk -F': ' '{print $2}')
+    echo "${STATUS}"
+}
+
+function get_gui_status() {
+    STATUS=$(docker exec -it shardeum-validator operator-cli gui status | grep status | awk -F': ' '{print $2}')
+    echo "${STATUS}"
+}
+
+cd "$HOME" || exit
+
+# Основной цикл проверки Shardeum
+check_shardeum_node() {
+    printf "Проверка статуса ноды Shardeum...\n"
+    NODE_STATUS=$(get_node_status)
+    GUI_STATUS=$(get_gui_status)
+    log "✅Текущий статус ноды: ${NODE_STATUS}"
+    log "✅Текущий статус дашборда: ${GUI_STATUS}"
+
+    if [ -z "$NODE_STATUS" ]; then
+        log "❌Shardeum нода не запущена"
+        docker start shardeum-validator
+        sleep 5m
+    else
+        if [[ "${NODE_STATUS}" == *"stopped"* ]]; then
+            log "❌Статус ноды остановлен"
+            docker exec -it shardeum-validator operator-cli start
         else
-            echo "Ошибка при перезапуске контейнера $container_name."
+            log "✅Статус ноды: $NODE_STATUS"
         fi
+    fi
+
+    if [[ "${GUI_STATUS}" == *"online"* ]]; then
+        log "✅ Статус дашборда: online"
     else
-        echo "Контейнер $container_name в статусе $container_status."
+        log "✅Статус дашборда: $GUI_STATUS"
+        docker exec -it shardeum-validator operator-cli gui start
     fi
 }
 
-# Функция для проверки и перезапуска сервиса
-function check_and_restart_service() {
-    local service_name=$1
-    service_status=$(systemctl is-active "$service_name")
+# === Функция логирования ===
+log() {
+    local message="$1"
+    echo "[$(date)] $message" | tee -a "$LOG_FILE"
+}
 
-    # Если статус не active, выполняем перезапуск
-    if [ "$service_status" != "active" ]; then
-        echo "Сервис $service_name не работает (статус: $service_status). Выполняется перезапуск..."
-        systemctl restart "$service_name"
-        if [ $? -eq 0 ]; then
-            echo "Сервис $service_name успешно перезапущен."
-        else
-            echo "Ошибка при перезапуске сервиса $service_name."
-        fi
+# === Очистка лог-файла раз в сутки ===
+clear_log_daily() {
+    local now
+    now=$(date +%s)
+
+    if [[ -f "$LAST_CLEAR_FILE" ]]; then
+        local last_clear
+        last_clear=$(cat "$LAST_CLEAR_FILE")
     else
-        echo "Сервис $service_name работает корректно (статус: $service_status)."
+        local last_clear=0
+    fi
+
+    # Проверяем, прошло ли 24 часа (86400 секунд) с последней очистки
+    if (( now - last_clear >= 86400 )); then
+        log "🧹 Очистка лог-файла $LOG_FILE..."
+        > "$LOG_FILE"
+        echo "$now" > "$LAST_CLEAR_FILE"
+        log "✅ Лог-файл очищен."
     fi
 }
 
-# Функция для проверки наличия сессии tmux с именем "rivalz"
-function check_and_create_tmux_session_rivalz() {
-    tmux_sessions=$(tmux ls 2>/dev/null)
-
-    # Проверяем, есть ли сессия с именем "rivalz"
-    if [[ "$tmux_sessions" != *"rivalz"* ]]; then
-        echo "Сессия tmux с именем 'rivalz' не найдена. Создаю новую сессию..."
-        tmux new-session -d -s rivalz 'rivalz run'
-        echo "Сессия tmux с именем 'rivalz' успешно создана."
-    else
-        echo "Сессия tmux с именем 'rivalz' уже существует."
-    fi
-}
-
-# Функция для проверки наличия сессии tmux с именем "cysic"
-function check_and_create_tmux_session_cysic() {
-    tmux_sessions=$(tmux ls 2>/dev/null)
-
-    # Проверяем, есть ли сессия с именем "cysic"
-    if [[ "$tmux_sessions" != *"cysic"* ]]; then
-        echo "Сессия tmux с именем 'cysic' не найдена. Создаю новую сессию..."
+# === Проверка и создание tmux-сессии Cysic ===
+log "🔍 Проверка Cysic..."
+check_and_create_tmux_session_cysic() {
+    if ! tmux has-session -t cysic 2>/dev/null; then
+        log "⚠️Сессия tmux 'cysic' не найдена. Создаю новую..."
         tmux new-session -d -s cysic 'cd ~/cysic-verifier/ && bash start.sh'
-        echo "Сессия tmux с именем 'cysic' успешно создана."
+        log "✅Сессия tmux 'cysic' успешно создана."
     else
-        echo "Сессия tmux с именем 'cysic' уже существует."
+        log "✅Сессия tmux 'cysic' уже работает."
     fi
 }
 
-# Список контейнеров для проверки
-containers=(
-    "brinxai_relay"
-    "root-worker-1"
-    "brinxai-worker-nodes-worker-1"
-    "hyperlane"
-    "elixir-node"
-    "nwaku-compose-grafana-1"
-    "nwaku-compose-waku-frontend-1"
-    "nwaku-compose-postgres-exporter-1"
-    "nwaku-compose-postgres-1"
-    "nwaku-compose-nwaku-1"
-    "nwaku-compose-prometheus-1"
-    "docker-watchtower-1"
-    "mongodb"
-    "ipfs_node"
-    "orchestrator"
-    "gaianet_chat"
-    "unichain-node-op-node-1"
-    "unichain-node-execution-client-1"
-    "hubble-hubble-1"
-    "hubble-grafana-1"
-    "titan-edge-container"
-    "nifty_newton"
-    "privasea-node"
-)
+# === Проверка и создание tmux-сессии Pipe ===
+log "🔍 Проверка Pipe..."
+check_and_create_tmux_session_Pipe() {
+    if ! tmux has-session -t Pipe 2>/dev/null; then
+        log "⚠️Сессия tmux 'pipe не найдена. Создаю новую..."
+        tmux new-session -d -s pipe './pop'
+        log "✅Сессия tmux 'pipe' успешно создана."
+    else
+        log "✅Сессия tmux 'pipe' уже работает."
+    fi
+}
 
-# Список сервисов для проверки
-services=(
-    "sonaricd.service"
-    "docker.service"
-    "blockmesh.service"
-    "exporterd.service"
-    "gaianet.service"
-)
 
-# Бесконечный цикл проверки
+# === Проверка и перезапуск multiple-node ===
+log "🔍 Проверка Multiple..."
+check_multiple_status() {
+    cd ~/multipleforlinux || { log "❌Ошибка: не удалось перейти в ~/multipleforlinux"; return; }
+
+    local status_output
+    status_output=$(timeout 60s ./multiple-cli status)
+
+    if [[ $? -eq 124 ]]; then
+        log "❌Ошибка: multiple-cli status не завершился за 60 сек."
+        return
+    fi
+
+    if [[ $status_output != *"Node Statistical"* ]]; then
+        log "⚠️multiple-node не работает. Перезапускаю..."
+        nohup ./multiple-node > output.log 2>&1 &
+        log "✅multiple-node был успешно запущен."
+    else
+        log "✅multiple-node работает нормально."
+    fi
+}
+
+# === Проверка, запуск Docker и перезапуск остановленных контейнеров ===
+check_docker_containers() {
+    log "🔍 Проверка Docker-демона..."
+    
+    if ! systemctl is-active --quiet docker; then
+        log "⚠️ Docker-демон не работает. Запускаю..."
+        systemctl start docker
+        sleep 5  # Даем Docker время на запуск
+        if ! systemctl is-active --quiet docker; then
+            log "❌ Ошибка: не удалось запустить Docker-демон!"
+            return
+        fi
+        log "✅ Docker-демон успешно запущен."
+    fi
+
+    log "🔍 Проверка Docker-контейнеров..."
+    local non_up_containers
+    non_up_containers=$(docker ps -a --filter "status=exited" --filter "status=created" --filter "status=paused" --format "{{.ID}} {{.Names}}")
+
+    if [[ -n "$non_up_containers" ]]; then
+        log "⚠️ Обнаружены остановленные контейнеры:"
+        echo "$non_up_containers" | awk '{print $2}' | tee -a "$LOG_FILE"
+
+        while IFS= read -r container; do
+            local container_id container_name
+            container_id=$(echo "$container" | awk '{print $1}')
+            container_name=$(echo "$container" | awk '{print $2}')
+            log "🔄 Перезапуск контейнера: $container_name..."
+            docker restart "$container_id" >> "$LOG_FILE" 2>&1
+            log "✅ Контейнер '$container_name' успешно перезапущен."
+        done <<< "$non_up_containers"
+    else
+        log "✅ Все контейнеры работают."
+    fi
+}
+
+# === Проверка и перезапуск всех неактивных systemd-сервисов ===
+check_services() {
+    log "🔍 Проверка systemd-сервисов..."
+    
+    local services
+    services=$(systemctl list-units --type=service --state=failed --no-pager --no-legend | awk '{print $1}' | grep -v '^●')
+
+    if [[ -z "$services" ]]; then
+        log "✅ Все сервисы работают нормально."
+        return
+    fi
+
+    log "⚠️ Обнаружены неактивные сервисы:"
+    log "$services"
+
+    while read -r service; do
+        [[ -z "$service" ]] && continue
+        log "🔄 Перезапуск сервиса: $service..."
+        systemctl restart "$service" >> "$LOG_FILE" 2>&1
+
+        local new_status
+        new_status=$(systemctl is-active "$service")
+        if [[ "$new_status" == "active" ]]; then
+            log "✅ Сервис '$service' успешно перезапущен."
+        else
+            log "❌ Ошибка: сервис '$service' не удалось запустить (новый статус: $new_status)."
+        fi
+    done <<< "$services"
+}
+
+# === Основной цикл ===
 while true; do
-    # Проверка статуса контейнеров
-    echo "Проверка статуса контейнеров..."
-    for container in "${containers[@]}"; do
-        check_and_restart_container "$container"
-    done
-
-    # Проверка статуса сервисов
-    echo "Проверка статуса сервисов..."
-    for service in "${services[@]}"; do
-        check_and_restart_service "$service"
-    done
-
-    # Проверка наличия сессии tmux с именем "rivalz"
-    echo "Проверка наличия сессии tmux 'rivalz'..."
-    check_and_create_tmux_session_rivalz
-
-    # Проверка наличия сессии tmux с именем "cysic"
-    echo "Проверка наличия сессии tmux 'cysic'..."
+    log "🟢 Начало новой проверки..."
+    
+    clear_log_daily
+    check_shardeum_node
     check_and_create_tmux_session_cysic
+    check_and_create_tmux_session_Pipe
+    check_multiple_status
+    check_docker_containers
+    check_services
 
-    echo "Ожидание перед следующей проверкой..."
-    sleep 5000s # Интервал между проверками (можно изменить)
+    log "✅ Проверка завершена. Ожидание перед следующей проверкой..."
+    sleep 250
 done
