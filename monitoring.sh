@@ -4,49 +4,6 @@
 LOG_FILE="/var/log/monitoring.log"
 LAST_CLEAR_FILE="/tmp/last_log_clear"  # Файл для хранения времени последней очистки
 
-# === Шардиум проверка ноды ===
-log "🔍 Проверка Shardeum..."
-function get_node_status() {
-    STATUS=$(docker exec -it shardeum-validator operator-cli status | grep state | awk -F': ' '{print $2}')
-    echo "${STATUS}"
-}
-
-function get_gui_status() {
-    STATUS=$(docker exec -it shardeum-validator operator-cli gui status | grep status | awk -F': ' '{print $2}')
-    echo "${STATUS}"
-}
-
-cd "$HOME" || exit
-
-# Основной цикл проверки Shardeum
-check_shardeum_node() {
-    printf "Проверка статуса ноды Shardeum...\n"
-    NODE_STATUS=$(get_node_status)
-    GUI_STATUS=$(get_gui_status)
-    log "✅Текущий статус ноды: ${NODE_STATUS}"
-    log "✅Текущий статус дашборда: ${GUI_STATUS}"
-
-    if [ -z "$NODE_STATUS" ]; then
-        log "❌Shardeum нода не запущена"
-        docker start shardeum-validator
-        sleep 5m
-    else
-        if [[ "${NODE_STATUS}" == *"stopped"* ]]; then
-            log "❌Статус ноды остановлен"
-            docker exec -it shardeum-validator operator-cli start
-        else
-            log "✅Статус ноды: $NODE_STATUS"
-        fi
-    fi
-
-    if [[ "${GUI_STATUS}" == *"online"* ]]; then
-        log "✅ Статус дашборда: online"
-    else
-        log "✅Статус дашборда: $GUI_STATUS"
-        docker exec -it shardeum-validator operator-cli gui start
-    fi
-}
-
 # === Функция логирования ===
 log() {
     local message="$1"
@@ -71,18 +28,6 @@ clear_log_daily() {
         > "$LOG_FILE"
         echo "$now" > "$LAST_CLEAR_FILE"
         log "✅ Лог-файл очищен."
-    fi
-}
-
-# === Проверка и создание tmux-сессии Cysic ===
-log "🔍 Проверка Cysic..."
-check_and_create_tmux_session_cysic() {
-    if ! tmux has-session -t cysic 2>/dev/null; then
-        log "⚠️Сессия tmux 'cysic' не найдена. Создаю новую..."
-        tmux new-session -d -s cysic 'cd ~/cysic-verifier/ && bash start.sh'
-        log "✅Сессия tmux 'cysic' успешно создана."
-    else
-        log "✅Сессия tmux 'cysic' уже работает."
     fi
 }
 
@@ -192,8 +137,6 @@ while true; do
     log "🟢 Начало новой проверки..."
     
     clear_log_daily
-    check_shardeum_node
-    check_and_create_tmux_session_cysic
     check_and_create_tmux_session_Pipe
     check_multiple_status
     check_docker_containers
