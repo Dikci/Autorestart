@@ -1,0 +1,43 @@
+groups:
+  - name: CriticalAlers
+    rules:
+      - alert: UPTIME_DOWN
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          description: '🚨𝐒𝐄𝐑𝐕𝐄𝐑 𝐢𝐬 𝐃𝐎𝐖𝐍 {{ $labels.instance }} '
+          summary: 'СЕРВЕР НЕДОСТУПЕН БОЛЕЕ 1 МИНУТЫ. ПРОВЕРИТЬ node_exporter И САМ СЕРВЕР'
+      - alert: DISK_space_usage_is_High
+        expr: 100 * (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes{mountpoint="/"})) > 85
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          description: '🚨𝐇𝐈𝐆𝐇 𝐃𝐈𝐒𝐊 𝐔𝐒𝐀𝐆𝐄 {{ $labels.instance }} '
+          summary: 'ДИСК ЗАПОЛНЕН НА 85 ПРОЦЕНТОВ. ПРОВЕРИТЬ ДИСК'
+      - alert: DISK_space_BIGDATA_usage_is_High
+        expr: 100 * (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes{mountpoint="/bigdata"})) > 85
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          description: '🚨𝐇𝐈𝐆𝐇 𝐃𝐈𝐒𝐊 𝐔𝐒𝐀𝐆𝐄 {{ $labels.instance }} '
+          summary: 'ДИСК BIGDATA ЗАПОЛНЕН НА 85 ПРОЦЕНТОВ. ПРОВЕРИТЬ ДИСК'
+      - alert: CPU_usage_is_High
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          description: '🚨𝐇𝐈𝐆𝐇 𝐂𝐏𝐔 𝐔𝐒𝐀𝐆𝐄 {{ $labels.instance }} '
+          summary: 'CPU ИСПОЛЬЗУЕТ БОЛЕЕ 85 ПРОЦЕНТОВ. ПРОВЕРИТЬ СЕРВЕР'
+      - alert: RAM_usage_is_High
+        expr: 100 * (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) > 85
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          description: '🚨𝐇𝐈𝐆𝐇 𝐑𝐀𝐌 𝐔𝐒𝐀𝐆𝐄 {{ $labels.instance }} '
+          summary: 'RAM ИСПОЛЬЗУЕТ БОЛЕЕ 85 ПРОЦЕНТОВ. ПРОВЕРИТЬ СЕРВЕР'
