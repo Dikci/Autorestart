@@ -43,6 +43,18 @@ check_and_create_tmux_session_Pipe() {
     fi
 }
 
+# === Проверка и создание tmux-сессии dria ===
+log "🔍 Проверка dria..."
+check_and_create_tmux_session_dria() {
+    if ! tmux has-session -t dria 2>/dev/null; then
+        log "⚠️Сессия tmux 'dria не найдена. Создаю новую..."
+        tmux new-session -d -s dria "dkn-compute-launcher start; bash"
+        log "✅Сессия tmux 'dria' успешно создана."
+    else
+        log "✅Сессия tmux 'dria' уже работает."
+    fi
+}
+
 
 # === Проверка и перезапуск multiple-node ===
 log "🔍 Проверка Multiple..."
@@ -138,6 +150,7 @@ while true; do
     
     clear_log_daily
     check_and_create_tmux_session_Pipe
+    check_and_create_tmux_session_dria
     check_multiple_status
     check_docker_containers
     check_services
