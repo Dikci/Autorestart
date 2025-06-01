@@ -28,13 +28,13 @@ services:
     image: ${NWAKU_IMAGE:-wakuorg/nwaku:v0.35.1}
     restart: on-failure
     ports:
-      - 30304:30304/tcp
-      - 30304:30304/udp
-      - 9005:9005/udp
+      - 33367:33367/tcp
+      - 33367:33367/udp
+      - 9178:9178/udp
       - 127.0.0.1:8013:8003
-      - 80:80 #Let's Encrypt
-      - 8000:8000/tcp #WSS
-      - 127.0.0.1:8645:8645
+      - 89:89 #Let's Encrypt
+      - 8257:8257/tcp #WSS
+      - 127.0.0.1:8648:8648
     logging:
       driver: json-file
       options:
@@ -102,7 +102,7 @@ services:
       - ./monitoring/configuration/customizations/custom-logo.svg:/usr/share/grafana/public/img/grafana_typelogo.svg:Z
       - ./monitoring/configuration/customizations/custom-logo.png:/usr/share/grafana/public/img/fav32.png:Z
     ports:
-      - 0.0.0.0:3100:3000
+      - 0.0.0.0:3178:3000
     restart: on-failure:5
     depends_on:
       - prometheus
@@ -147,7 +147,7 @@ services:
    # TODO: migrate to waku-org
    image: alrevuelta/waku-frontend:aad9628
    ports:
-    - 127.0.0.1:4000:4000
+    - 127.0.0.1:4250:4000
    restart: on-failure:5
    depends_on:
     - nwaku
