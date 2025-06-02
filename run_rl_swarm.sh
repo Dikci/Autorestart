@@ -72,18 +72,7 @@ fi
 
 [ -f cuda.sh ] && rm cuda.sh; curl -o cuda.sh https://raw.githubusercontent.com/zunxbt/gensyn-testnet/main/cuda.sh && chmod +x cuda.sh && . ./cuda.sh
 
-while true; do
-    # Prompt the user
-    echo -e "\n\033[36m\033[1mPlease select a swarm to join:\n[A] Math\n[B] Math Hard\033[0m"
-    read -p "> " ab
-    ab=${ab:-A}  # Default to "A" if Enter is pressed
-
-    case $ab in
-        [Aa]*)  USE_BIG_SWARM=false; break ;;
-        [Bb]*)  USE_BIG_SWARM=true; break ;;
-        *)      echo ">>> Please answer A or B." ;;
-    esac
-done
+USE_BIG_SWARM=false
 
 if [ "$USE_BIG_SWARM" = true ]; then
     SWARM_CONTRACT="$BIG_SWARM_CONTRACT"
