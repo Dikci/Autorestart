@@ -1,0 +1,16 @@
+#!/bin/bash
+
+docker stop aztec-sequencer && docker rm aztec-sequencer
+
+docker pull aztecprotocol/aztec:0.87.9
+
+    docker run -d \
+      --name aztec-sequencer \
+      --network host \
+      --entrypoint /bin/sh \
+      --env-file "$HOME/aztec-sequencer/.env" \
+      -e DATA_DIRECTORY=/data \
+      -e LOG_LEVEL=debug \
+      -v "$HOME/aztec-sequencer/data":/data \
+      aztecprotocol/aztec:0.87.9 \
+      -c 'node --no-warnings /usr/src/yarn-project/aztec/dest/bin/index.js start --network alpha-testnet --node --archiver --sequencer'
