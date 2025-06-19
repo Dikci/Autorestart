@@ -25,7 +25,7 @@
     mkdir -p "$HOME/aztec-sequencer"
     cd "$HOME/aztec-sequencer"
 
-    docker pull aztecprotocol/aztec:0.87.8
+    docker pull aztecprotocol/aztec:0.87.9
 
     read -p "Вставьте ваш URL RPC Sepolia: " RPC
     read -p "Вставьте ваш URL Beacon Sepolia: " CONSENSUS
@@ -53,7 +53,7 @@ EOF
       -e DATA_DIRECTORY=/data \
       -e LOG_LEVEL=debug \
       -v "$HOME/aztec-sequencer/data":/data \
-      aztecprotocol/aztec:0.87.8 \
+      aztecprotocol/aztec:0.87.9 \
       -c 'node --no-warnings /usr/src/yarn-project/aztec/dest/bin/index.js start --network alpha-testnet --node --archiver --sequencer'
 
     echo -e "${PURPLE}-----------------------------------------------------------------------${NC}"
