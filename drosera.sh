@@ -10,23 +10,6 @@ curl -s https://raw.githubusercontent.com/DOUBLE-TOP/tools/main/ufw.sh | bash &>
 sudo apt install iptables jq gcc automake autoconf nvme-cli libgbm1 pkg-config libleveldb-dev tar bsdmainutils libleveldb-dev  -y &>/dev/null
 echo "Dependencies установлены"
 
-# создаем файл .profile если его нет в системе
-[ -f /root/.profile ] || touch /root/.profile
-
-# Проверяем в системе git user.name
-name=$(git config --global user.name)
-if [ -z "$name" ]; then
-  read -p "Введите Git user name: " name
-  git config --global user.name "$name"
-fi
-
-# Проверяем в системе git user.email
-email=$(git config --global user.email)
-if [ -z "$email" ]; then
-  read -p "Введите Git email: " email
-  git config --global user.email "$email"
-fi
-
 echo "Ставим Drosera CLI"
 curl -s -L https://app.drosera.io/install | bash > /dev/null 2>&1
 echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
