@@ -1,36 +1,47 @@
 #!/bin/bash
 
-# Путь к файлу .env
-ENV_FILE="/root/aztec-sequencer/.env"
+# Путь к файлу конфигурации
+CONFIG_FILE="/root/drosera/drosera.toml"
 
 # Проверка существования файла
-if [ ! -f "$ENV_FILE" ]; then
-    echo "Ошибка: файл $ENV_FILE не найден!"
-    exit 1
-fi
-
-# Извлекаем значение VALIDATOR_PRIVATE_KEY (удаляем 0x в начале если есть)
-PRIVEVM_VALUE=$(grep '^VALIDATOR_PRIVATE_KEY=' "$ENV_FILE" | cut -d= -f2- | sed 's/^0x//' | tr -d '"'"'")
-
-# Проверяем что значение не пустое
-if [ -z "$PRIVEVM_VALUE" ]; then
-    echo "Ошибка: VALIDATOR_PRIVATE_KEY не найдена или пуста"
+if [ ! -f "$CONFIG_FILE" ]; then
+    echo "Ошибка: файл $CONFIG_FILE не найден!"
     exit 1
 fi
 
 # Создаем временный файл
 TMP_ENV=$(mktemp)
 
-# Копируем существующий environment (исключая старые PRIVEVM)
-[ -f "/etc/environment" ] && grep -v '^PRIVEVM=' /etc/environment > "$TMP_ENV"
+# Копируем существующий environment (исключая старые определения)
+[ -f "/etc/environment" ] && grep -vE '^(TRAP|HOLESKY)=' /etc/environment > "$TMP_ENV"
 
-# Добавляем новое значение
-echo "PRIVEVM=\"$PRIVEVM_VALUE\"" >> "$TMP_ENV"
+# Функция для извлечения значений из TOML
+extract_value() {
+    key=$1
+    grep "^${key} =" "$CONFIG_FILE" | cut -d= -f2- | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"//' -e 's/"$//' -e "s/^'//" -e "s/'$//"
+}
+
+# Извлекаем и добавляем TRAP (address)
+TRAP_VALUE=$(extract_value "address")
+if [ -n "$TRAP_VALUE" ]; then
+    echo "TRAP=\"$TRAP_VALUE\"" >> "$TMP_ENV"
+    echo "Добавлено: TRAP=\"$TRAP_VALUE\""
+else
+    echo "Предупреждение: address не найден в конфиге"
+fi
+
+# Извлекаем и добавляем HOLESKY (ethereum_rpc)
+HOLESKY_VALUE=$(extract_value "ethereum_rpc")
+if [ -n "$HOLESKY_VALUE" ]; then
+    echo "HOLESKY=\"$HOLESKY_VALUE\"" >> "$TMP_ENV"
+    echo "Добавлено: HOLESKY=\"$HOLESKY_VALUE\""
+else
+    echo "Предупреждение: ethereum_rpc не найден в конфиге"
+fi
 
 # Применяем изменения
 sudo mv "$TMP_ENV" /etc/environment
 sudo chmod 644 /etc/environment
 
-echo "Успешно! Переменная PRIVEVM добавлена в /etc/environment"
-echo "Значение: PRIVEVM=\"$PRIVEVM_VALUE\""
-echo "Для применения изменений может потребоваться перезагрузка."
+echo "Изменения применены к /etc/environment"
+echo "Для применения может потребоваться перезагрузка"
