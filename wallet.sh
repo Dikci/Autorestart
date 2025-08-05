@@ -3,33 +3,34 @@
 # Путь к файлу .env
 ENV_FILE="/root/aztec-sequencer/.env"
 
-# Проверка файла
+# Проверка существования файла
 if [ ! -f "$ENV_FILE" ]; then
     echo "Ошибка: файл $ENV_FILE не найден!"
     exit 1
 fi
 
-# Извлекаем значение WALLET и сохраняем как EVM
-EVM_VALUE=$(grep '^WALLET=' "$ENV_FILE" | cut -d= -f2- | sed 's/^["'\'']//; s/["'\'']$//')
+# Извлекаем значение VALIDATOR_PRIVATE_KEY (удаляем 0x в начале если есть)
+PRIVEVM_VALUE=$(grep '^VALIDATOR_PRIVATE_KEY=' "$ENV_FILE" | cut -d= -f2- | sed 's/^0x//' | tr -d '"'"'")
 
-if [ -z "$EVM_VALUE" ]; then
-    echo "Ошибка: переменная WALLET не найдена в исходном файле"
+# Проверяем что значение не пустое
+if [ -z "$PRIVEVM_VALUE" ]; then
+    echo "Ошибка: VALIDATOR_PRIVATE_KEY не найдена или пуста"
     exit 1
 fi
 
 # Создаем временный файл
 TMP_ENV=$(mktemp)
 
-# Копируем существующий environment (исключая старые EVM)
-[ -f "/etc/environment" ] && grep -v '^EVM=' /etc/environment > "$TMP_ENV"
+# Копируем существующий environment (исключая старые PRIVEVM)
+[ -f "/etc/environment" ] && grep -v '^PRIVEVM=' /etc/environment > "$TMP_ENV"
 
 # Добавляем новое значение
-echo "EVM=\"$EVM_VALUE\"" >> "$TMP_ENV"
+echo "PRIVEVM=\"$PRIVEVM_VALUE\"" >> "$TMP_ENV"
 
 # Применяем изменения
 sudo mv "$TMP_ENV" /etc/environment
 sudo chmod 644 /etc/environment
 
-echo "Успешно! Переменная EVM добавлена:"
-echo "EVM=\"$EVM_VALUE\""
-echo "Перезагрузите систему для применения изменений."
+echo "Успешно! Переменная PRIVEVM добавлена в /etc/environment"
+echo "Значение: PRIVEVM=\"$PRIVEVM_VALUE\""
+echo "Для применения изменений может потребоваться перезагрузка."
