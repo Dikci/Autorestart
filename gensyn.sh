@@ -1,18 +1,35 @@
 #!/bin/bash
 
-sudo apt install -y python3 python3-venv python3-pip curl screen git yarn
-curl -sSL https://raw.githubusercontent.com/zunxbt/installation/main/node.sh | bash
-sudo apt update && sudo apt install -y python3 python3-venv python3-pip curl wget screen git lsof nano unzip iproute2
-swapon --show
-sudo fallocate -l 16G /swapfile
-sudo mkswap /swapfile
-sudo swapon /swapfile
-rm -rf rl-swarm && git clone https://github.com/gensyn-ai/rl-swarm.git && cd rl-swarm
-rm -rf /root/rl-swarm/modal-login/app/Page.tsx
-wget -O /root/rl-swarm/modal-login/app/Page.tsx https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/Page.tsx
-rm -rf hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml
-wget -O hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/grpo-qwen-2.5-0.5b-deepseek-r1.yaml
-sed -i 's/bf16: true/bf16: false/' hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml
-grep -rl "bf16: true" hivemind_exp/configs/gpu/ | xargs sed -i 's/bf16: true/bf16: false/g'
+cd rl-swarm
+git stash push run_rl_swarm.sh
+git pull
+git stash pop
 rm -rf run_rl_swarm.sh
-wget -O /root/rl-swarm/run_rl_swarm.sh https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/run_rl_swarm.sh && chmod +x run_rl_swarm.sh && ./run_rl_swarm.sh
+wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/run_rl_swarm.sh
+chmod +x run_rl_swarm.sh
+curl -sSL https://raw.githubusercontent.com/zunxbt/installation/main/node.sh | bash
+sudo rm -f /usr/local/bin/yarn
+sudo rm -f /usr/bin/yarn
+sudo rm -rf ~/.yarn
+sudo rm -rf ~/.config/yarn
+sudo rm -rf ~/.npm/_npx
+sudo npm uninstall -g corepack || true
+sudo npm install -g corepack
+corepack enable
+corepack prepare yarn@4.9.2 --activate
+yarn -v
+cd modal-login
+rm -rf node_modules .yarn yarn.lock
+sed -i 's/"viem": *"[^"]*"/"viem": "2.29.2"/' package.json
+yarn install
+yarn add eventemitter3 @account-kit/logging ox
+yarn add lit-html @wagmi/core @aa-sdk/core
+yarn add @tanstack/query-core pino-pretty
+yarn add encoding
+rm -rf .yarn/cache .yarn/install-state.gz .yarn/virtual yarn.lock
+yarn add @account-kit/core@4.53.1
+cd ..
+python3 -m venv .venv && source .venv/bin/activate
+pip install --force-reinstall transformers==4.51.3 trl==0.19.1
+pip freeze
+export CUDA_VISIBLE_DEVICES="" && ./run_rl_swarm.sh
