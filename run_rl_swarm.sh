@@ -109,30 +109,43 @@ if [ "$CONNECT_TO_TESTNET" = true ]; then
     fi
     yarn start >> "$ROOT/logs/yarn.log" 2>&1 &
 
-SERVER_PID=$!
-echo "Started server process: $SERVER_PID"
-sleep 5
+    SERVER_PID=$!
+    echo "Started server process: $SERVER_PID"
+    sleep 5
 
-# Запускаем localtunnel в фоне
-lt --port 3000 --local-host 0.0.0.0 > lt_url.txt &
-LT_PID=$!
-echo "Started localtunnel process: $LT_PID"
-
-# Ждём, пока lt выдаст ссылку
-sleep 3
-echo "Public URL for login:"
-grep -m 1 "https://" lt_url.txt
-
-if [ -z "$DOCKER" ]; then
-    if open http://localhost:3000 2> /dev/null; then
-        echo_green ">> Opened http://localhost:3000 in browser"
+    if [ -z "$DOCKER" ]; then
+        if open http://localhost:3000 2> /dev/null; then
+            echo_green ">> Opened http://localhost:3000 in browser"
+        else
+            echo ">> Open http://localhost:3000 manually"
+        fi
     else
-        echo ">> Open http://localhost:3000 manually"
+        echo_green ">> Open http://localhost:3000 in your host browser"
     fi
-else
-    echo_green ">> Open http://localhost:3000 in your host browser"
-fi
 
+    cd ..
+
+    echo_green ">> Waiting for modal userData.json to be created..."
+    while [ ! -f "modal-login/temp-data/userData.json" ]; do
+        sleep 5
+    done
+    echo "Found userData.json. Proceeding..."
+
+    ORG_ID=$(awk 'BEGIN { FS = "\"" } !/^[ \t]*[{}]/ { print $(NF - 1); exit }' modal-login/temp-data/userData.json)
+    echo "Your ORG_ID is set to: $ORG_ID"
+
+    echo "Waiting for API key to become activated..."
+    while true; do
+        STATUS=$(curl -s "http://localhost:3000/api/get-api-key-status?orgId=$ORG_ID")
+        if [[ "$STATUS" == "activated" ]]; then
+            echo "API key is activated! Proceeding..."
+            break
+        else
+            echo "Waiting for API key to be activated..."
+            sleep 5
+        fi
+    done
+fi
 
 echo_green ">> Getting requirements..."
 pip install --upgrade pip
