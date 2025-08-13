@@ -20,7 +20,9 @@ corepack prepare yarn@4.9.2 --activate
 yarn -v
 cd modal-login
 rm -rf node_modules .yarn yarn.lock
-sed -i 's/"viem": *"[^"]*"/"viem": "2.29.2"/' package.json
+sed -i 's/"viem": *"[^"]*"/"viem": "2.33.3"/' package.json
+yarn up viem@2.33.3 -E -i
+yarn add @alchemy/aa-core@latest @alchemy/aa-alchemy@latest
 yarn install
 yarn add eventemitter3 @account-kit/logging ox
 yarn add lit-html @wagmi/core @aa-sdk/core
