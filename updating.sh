@@ -25,11 +25,11 @@ tmux new-session -d -s nexus bash -c '
 npm install pm2 -g
 
 # Перезапускаем процесс gensyn через pm2
-pm2 delete gensyn 2>/dev/null
+npm install pm2 -g
+pm2 delete gensyn
 pm2 start /root/rl-swarm/run_rl_swarm.sh \
-    --name gensynes \
-    --interpreter bash \
-    --cwd /root/rl-swarm
-
+  --name gensyn \
+  --interpreter bash \
+  --cwd /root/rl-swarm
 pm2 save
 pm2 logs gensyn
