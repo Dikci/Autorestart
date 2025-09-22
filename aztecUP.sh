@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sed -i '1s|^ETHEREUM_HOSTS=.*|ETHEREUM_HOSTS=https://ethereum-sepolia-rpc.publicnode.com|' aztec-sequencer/.env
+
 docker stop aztec-sequencer && docker rm aztec-sequencer
 
 docker pull aztecprotocol/aztec:latest
