@@ -116,7 +116,7 @@ Restart=always
 RestartSec=15
 LimitNOFILE=65535
 ExecStart=$(which drosera-operator) node --db-file-path /root/.drosera.db --network-p2p-port 31313 --server-port 31314 \\
-    --eth-rpc-url $new_rpc \\
+    --eth-rpc-url https://rpc.hoodi.ethpandaops.io \\
     --eth-backup-rpc-url https://ethereum-hoodi-rpc.publicnode.com \\
     --drosera-address 0x91cB447BaFc6e0EA0F4Fe056F5a9b1F14bb06e5D \\
     --eth-private-key $privkey \\
