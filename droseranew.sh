@@ -12,18 +12,6 @@ echo "Dependencies установлены"
 
 [ -f /root/.profile ] || touch /root/.profile
 
-name=$(git config --global user.name)
-if [ -z "$name" ]; then
-  read -p "Введите Git user name: " name
-  git config --global user.name "$name"
-fi
-
-email=$(git config --global user.email)
-if [ -z "$email" ]; then
-  read -p "Введите Git email: " email
-  git config --global user.email "$email"
-fi
-
 echo "Ставим Drosera CLI"
 curl -s -L https://app.drosera.io/install | bash > /dev/null 2>&1
 echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
