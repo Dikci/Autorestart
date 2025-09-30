@@ -7,4 +7,3 @@ pm2 start /root/rl-swarm/run_rl_swarm.sh \
   --interpreter bash \
   --cwd /root/rl-swarm
 pm2 save
-pm2 logs gensyn
