@@ -20,4 +20,3 @@ EOF
 sudo systemctl daemon-reload
 sudo systemctl enable irys-auto
 sudo systemctl start irys-auto
-exit
