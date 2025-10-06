@@ -1,19 +1,22 @@
 #!/bin/bash
 
-cd ~/cysic-verifier/
+sudo npm i -g @irys/cli
+wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/auto_irys_test.sh
+chmod +x auto_irys_test.sh
+sudo tee /etc/systemd/system/irys-auto.service > /dev/null << EOF
+[Unit]
+Description=Irys Auto Transaction Script
+After=network-online.target
 
-while true; do
-    echo "Запускаю ноду..."
-    
-    # Запускаем ноду и сразу перенаправляем вывод в лог-файл
-    bash start.sh 2>&1 | tee output.log
+[Service]
+ExecStart=/root/auto_irys_test.sh
+Restart=always
+RestartSec=86400
+EnvironmentFile=/etc/environment
 
-    # После завершения ноды — анализируем лог
-    if grep -q "repeated read on failed websocket connection" output.log; then
-        echo "Найдена ошибка в логе! Перезапуск через 3 секунды..."
-        sleep 3
-    else
-        echo "Нода завершилась без целевой ошибки. Останавливаемся."
-        break
-    fi
-done
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl daemon-reload
+sudo systemctl enable irys-auto
+sudo systemctl start irys-auto
