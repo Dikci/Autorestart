@@ -33,11 +33,11 @@ docker pull aztecprotocol/aztec:latest
 # Загружаем переменные из /etc/environment
 source /etc/environment
 
-# RPC всегда фиксированный
+# RPC и CONSENSUS — фиксированные
 RPC="https://ethereum-sepolia-rpc.publicnode.com"
+CONSENSUS="https://ethereum-sepolia-beacon-api.publicnode.com"
 
-# Берём CONSENSUS, PRIVATE_KEY и WALLET из окружения
-CONSENSUS="${CONSENSUS}"
+# Берём PRIVATE_KEY и WALLET из окружения
 PRIVATE_KEY="${PRIVEVM}"
 WALLET="${EVM}"
 
@@ -71,9 +71,8 @@ docker run -d \
   -c 'node --no-warnings /usr/src/yarn-project/aztec/dest/bin/index.js start --network alpha-testnet --node --archiver --sequencer'
 
 echo -e "${PURPLE}-----------------------------------------------------------------------${NC}"
-echo -e "${YELLOW}Команда для проверки логов:${NC}" 
+echo -e "${YELLOW}Команда для проверки логов:${NC}"
 echo "docker logs --tail 100 -f aztec-sequencer"
 echo -e "${PURPLE}-----------------------------------------------------------------------${NC}"
 echo -e "${GREEN}Процесс завершён.${NC}"
 sleep 2
-docker logs --tail 100 -f aztec-sequencer
