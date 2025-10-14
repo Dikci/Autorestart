@@ -135,12 +135,12 @@ ExecStart=/bin/bash /root/Monitoring.sh
 Restart=always
 User=root
 WorkingDirectory=/root
-StandardOutput=append:/var/log/monitoring.log
-StandardError=append:/var/log/monitoring.log
+# Пусть скрипт сам пишет в лог через tee
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
-EOF
 
 # Применяем и запускаем сервис
 sudo systemctl daemon-reload
