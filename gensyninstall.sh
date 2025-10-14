@@ -24,4 +24,5 @@ sed -i 's|http://localhost:3000|http://localhost:3999|g' $(grep -rl "http://loca
 sed -i '/rm -r \$ROOT_DIR\/modal-login\/temp-data\/\*\.json/d' run_rl_swarm.sh 
 chmod +x run_rl_swarm.sh
 python3 -m venv .venv && source .venv/bin/activate
+pip install --force-reinstall --no-deps --ignore-installed "pydantic<2" "pydantic-core<1.12.3"
 ./run_rl_swarm.sh
