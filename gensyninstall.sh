@@ -1,11 +1,27 @@
 #!/bin/bash
-
-rm -rf rl-swarm && git clone https://github.com/Dikci/rl-swarm && cd rl-swarm
-rm -rf /root/rl-swarm/modal-login/app/Page.tsx
-wget -O /root/rl-swarm/modal-login/app/Page.tsx https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/Page.tsx
-rm -rf hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml
-wget -O hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/grpo-qwen-2.5-0.5b-deepseek-r1.yaml
-sed -i 's/bf16: true/bf16: false/' hivemind_exp/configs/mac/grpo-qwen-2.5-0.5b-deepseek-r1.yaml
-grep -rl "bf16: true" hivemind_exp/configs/gpu/ | xargs sed -i 's/bf16: true/bf16: false/g'
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y python3 python3-venv python3-pip curl wget screen git lsof nano unzip iproute2
+sudo apt remove -y nodejs npm
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
+npm install -g yarn
+npm install -g localtunnel
+mkdir -p backuppp 
+cp /root/rl-swarm/swarm.pem /root/backuppp
+rm -rf rl-swarm
+npm install -g yarn --force
+yarn install
+git clone https://github.com/gensyn-ai/rl-swarm
+cd rl-swarm
+python3 -m venv .venv && source .venv/bin/activate
 rm -rf run_rl_swarm.sh
-wget -O /root/rl-swarm/run_rl_swarm.sh https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/run_rl_swarm.sh && chmod +x run_rl_swarm.sh && ./run_rl_swarm.sh
+cp /root/backuppp/swarm.pem /root/rl-swarm/swarm.pem
+sed -i '$ a PORT=3999' /root/rl-swarm/modal-login/.env
+wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/run_rl_swarm.sh
+sudo ufw allow 3999/tcp
+sudo ufw allow 3999
+sed -i 's|http://localhost:3000|http://localhost:3999|g' $(grep -rl "http://localhost:3000" ~/rl-swarm)
+sed -i '/rm -r \$ROOT_DIR\/modal-login\/temp-data\/\*\.json/d' run_rl_swarm.sh 
+chmod +x run_rl_swarm.sh
+python3 -m venv .venv && source .venv/bin/activate
+./run_rl_swarm.sh
