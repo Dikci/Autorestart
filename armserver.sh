@@ -123,6 +123,7 @@ tmux new-session -d -s waku  "bash -c 'rm -rf install.sh && wget https://raw.git
 # Скачиваем скрипт
 rm -f /root/Monitoring.sh
 wget -q https://raw.githubusercontent.com/Dikci/vps2-3/refs/heads/main/Monitoring.sh -O /root/Monitoring.sh
+chmod +x Monitoring.sh
 
 # Создаем файл юнита
 sudo tee /etc/systemd/system/monitoring.service > /dev/null <<'EOF'
