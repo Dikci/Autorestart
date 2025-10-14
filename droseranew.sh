@@ -17,6 +17,8 @@ curl -s -L https://app.drosera.io/install | bash > /dev/null 2>&1
 echo 'export PATH="$PATH:/root/.drosera/bin"' >> /root/.profile
 echo 'export PATH="/root/.drosera/bin:$PATH"' >> /root/.bashrc
 source /root/.profile
+source /root/.bashrc
+export PATH="$PATH:/root/.drosera/bin"
 droseraup &>/dev/null
 
 echo "Ставим Foundry CLI"
@@ -29,6 +31,7 @@ curl -fsSL https://bun.sh/install | bash &>/dev/null
 echo 'export BUN_INSTALL="$HOME/.bun"' >> /root/.profile
 echo 'export PATH="$BUN_INSTALL/bin:$PATH"' >> /root/.profile
 source /root/.profile
+export PATH="$PATH:$HOME/.bun/bin"
 
 echo "Создаем и компилируем Trap"
 mkdir -p drosera
@@ -38,16 +41,13 @@ bun install &>/dev/null
 source /root/.bashrc
 forge build &>/dev/null
 
-echo "Размещаем Trap"
-read -p "Введите адрес кошелька (начинается с 0х): " pubkey
-read -p "Введите приватник данного кошелька: " privkey
-read -p "Введите адрес вашей существующей Трапы (или нажмите Enter чтобы создать новую): " existing_trap
-read -p "Введите приватный RPC адрес (или нажмите Enter чтобы воспользоваться публичным https://ethereum-hoodi-rpc.publicnode.com): " new_rpc
+# Загружаем переменные из окружения
+source /etc/environment
 
-# Сохраняем переменные в /etc/environment в кавычках
-sudo sed -i '/^TRAP=/d' /etc/environment
-sudo sed -i '/^EVM=/d' /etc/environment
-sudo sed -i '/^PRIVEVM=/d' /etc/environment
+# Используем уже существующие переменные
+pubkey="$EVM"
+privkey="$PRIVEVM"
+existing_trap="$TRAP"
 
 if [ -n "$existing_trap" ]; then
     trap_addr="$existing_trap"
@@ -58,17 +58,12 @@ else
     echo "Созадаем новую трапу."
 fi
 
-echo "TRAP=\"$trap_addr\""    | sudo tee -a /etc/environment
-echo "EVM=\"$pubkey\""       | sudo tee -a /etc/environment
-echo "PRIVEVM=\"$privkey\""  | sudo tee -a /etc/environment
+# RPC всегда публичный — не спрашиваем у пользователя
+new_rpc="https://ethereum-hoodi-rpc.publicnode.com"
 
 config_file=~/drosera/drosera.toml
-if [ -n "$new_rpc" ]; then
-    sed -i "s|^ethereum_rpc = \".*\"|ethereum_rpc = \"$new_rpc\"|" "$config_file"
-else
-    new_rpc="https://ethereum-hoodi-rpc.publicnode.com"
-    sed -i "s|^block_sample_size = .*|block_sample_size = 5|" "$config_file"
-fi
+sed -i "s|^ethereum_rpc = \".*\"|ethereum_rpc = \"$new_rpc\"|" "$config_file"
+sed -i "s|^block_sample_size = .*|block_sample_size = 5|" "$config_file"
 
 echo "Обновляем Drosera.toml whitelist"
 sed -i "s/^whitelist = .*/whitelist = [\"$pubkey\"]/" drosera.toml
@@ -79,13 +74,13 @@ else
 fi
 
 # Автоматически отвечаем "ofc" на интерактивный запрос drosera apply
-echo 'ofc' | DROSERA_PRIVATE_KEY="$privkey" drosera apply
+echo 'ofc' | DROSERA_PRIVATE_KEY="$privkey" /root/.drosera/bin/drosera apply
 
-drosera dryrun
+/root/.drosera/bin/drosera dryrun
 echo "Сделали Трапу приватной и привязали к кошельку"
 cd ~
 
-drosera-operator register --eth-rpc-url https://ethereum-hoodi-rpc.publicnode.com --eth-private-key "$privkey"
+/root/.drosera/bin/drosera-operator register --eth-rpc-url "$new_rpc" --eth-private-key "$privkey"
 
 echo "Оператор установлен. Создаем системный сервис"
 ip_address=$(hostname -I | awk '{print $1}')
@@ -110,7 +105,7 @@ User=$USER
 Restart=always
 RestartSec=15
 LimitNOFILE=65535
-ExecStart=$(which drosera-operator) node --db-file-path $HOME/.drosera.db --network-p2p-port 31313 --server-port 31314 \
+ExecStart=/root/.drosera/bin/drosera-operator node --db-file-path $HOME/.drosera.db --network-p2p-port 31313 --server-port 31314 \
     --eth-rpc-url $new_rpc \
     --eth-backup-rpc-url https://ethereum-hoodi-rpc.publicnode.com \
     --drosera-address 0x91cB447BaFc6e0EA0F4Fe056F5a9b1F14bb06e5D \
@@ -127,4 +122,5 @@ sudo systemctl daemon-reload
 sudo systemctl enable drosera
 sudo systemctl start drosera
 
-echo "Установка завершена. Сервис запущен. Смотреть логи можно через journalctl -u drosera.service -f"
+echo "✅ Установка завершена. Сервис запущен."
+echo "📜 Смотреть логи: journalctl -u drosera.service -f"
