@@ -6,8 +6,8 @@ if [ "$EUID" -ne 0 ]; then
   exit 1
 fi
 
-# Список переменных (без TITAN и CONSENSUS)
-VARS=("TRAP" "EVM" "PRIVEVM" "DATAGRAM" "ID")
+# Список переменных (добавили BEACON)
+VARS=("TRAP" "EVM" "PRIVEVM" "DATAGRAM" "ID" "BEACON")
 
 # Создаем временный файл
 TMP_FILE=$(mktemp)
@@ -104,9 +104,13 @@ sudo sh -c "iptables-save > /etc/iptables/rules.v4"
 wget --no-cache -q -O docker_main.sh https://raw.githubusercontent.com/noxuspace/cryptofortochka/main/docker/docker_main.sh && sudo chmod +x docker_main.sh && ./docker_main.sh
 
 
-wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/irys.sh && chmod +x irys.sh && ./irys.sh
-docker stop nexus && docker rm nexus && docker pull nexusxyz/nexus-cli:latest
-tmux new-session -d -s nexus bash -c 'bash -c "set -a; . /etc/environment; set +a; docker stop nexus; docker rm nexus; docker run -it --init --name nexus nexusxyz/nexus-cli:latest start --node-id \$ID; exec bash"'
+curl -O https://cli.nexus.xyz/install.sh
+sed -i 's/read -p "Do you agree.*"/echo Y/' install.sh
+sh install.sh
+wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/nexusU.sh
+chmod +x nexusU.sh
+tmux kill-session -t nexus
+tmux new-session -d -s nexus 'bash /root/nexusU.sh'
 
 tmux kill-session -t gensyn
 rm -rf gensyn.sh
@@ -114,7 +118,6 @@ tmux new-session -d -s gensyn  "bash -c 'wget https://raw.githubusercontent.com/
 tmux kill-session -t drosera
 rm -rf droseranew.sh
 tmux new-session -d -s drosera  "bash -c 'wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/droseranew.sh  && chmod +x droseranew.sh && ./droseranew.sh; exec bash'"
-tmux new-session -d -s aztec  "bash -c 'wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/aztec.sh && chmod +x aztec.sh && ./aztec.sh; exec bash'"
 tmux new-session -d -s dria "bash --login -c 'curl -fsSL https://dria.co/launcher | bash && curl -fsSL https://ollama.com/install.sh | sh && echo \"export PATH=\\\"\\\$PATH:/root/.dria/bin\\\"\" | sudo tee -a /etc/profile.d/dria.sh && sudo chmod +x /etc/profile.d/dria.sh && source /etc/profile.d/dria.sh && dkn-compute-launcher start'"
 tmux new-session -d -s waku  "bash -c 'rm -rf install.sh && wget https://raw.githubusercontent.com/DOUBLE-TOP/guides/refs/heads/main/waku/install.sh && chmod +x install.sh && ./install.sh; exec bash'"
 
