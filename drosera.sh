@@ -45,7 +45,7 @@ pubkey=${EVM}
 privkey=${PRIVEVM}
 existing_trap=""
 
-new_rpc=${HOODI:-"https://ethereum-hoodi-rpc.publicnode.com"}
+new_rpc=${HOODI:-"https://rpc.hoodi.ethpandaops.io"}
 
 echo "Используем адрес кошелька: $pubkey"
 echo "Используем приватник: [скрыт]"
