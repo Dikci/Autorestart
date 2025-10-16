@@ -59,7 +59,7 @@ else
 fi
 
 # RPC всегда публичный — не спрашиваем у пользователя
-new_rpc="https://ethereum-hoodi-rpc.publicnode.com"
+new_rpc="https://rpc.hoodi.ethpandaops.io"
 
 config_file=~/drosera/drosera.toml
 sed -i "s|^ethereum_rpc = \".*\"|ethereum_rpc = \"$new_rpc\"|" "$config_file"
