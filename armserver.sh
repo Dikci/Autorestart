@@ -126,7 +126,7 @@ tmux new-session -d -s waku  "bash -c 'rm -rf install.sh && wget https://raw.git
 # Скачиваем скрипт
 rm -f /root/Monitoring.sh
 wget -q https://raw.githubusercontent.com/Dikci/vps2-3/refs/heads/main/Monitoring.sh -O /root/Monitoring.sh
-chmod +x Monitoring.sh
+chmod +x /root/Monitoring.sh
 
 # Создаем файл юнита
 sudo tee /etc/systemd/system/monitoring.service > /dev/null <<'EOF'
@@ -145,10 +145,12 @@ StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
+EOF
 
 # Применяем и запускаем сервис
 sudo systemctl daemon-reload
 sudo systemctl enable monitoring.service
 sudo systemctl restart monitoring.service
+
 
 tmux new-session -d -s datagram "sudo apt update && sudo apt install -y qemu-user-static debootstrap wget curl && sudo mkdir -p ./x86_root && sudo debootstrap --arch=amd64 --foreign jammy ./x86_root http://archive.ubuntu.com/ubuntu && sudo cp /usr/bin/qemu-x86_64-static ./x86_root/usr/bin/ && sudo chroot ./x86_root /bin/bash -c \"/debootstrap/debootstrap --second-stage && apt update && apt install -y curl wget && set -a; . /etc/environment; set +a; wget -q https://github.com/Datagram-Group/datagram-cli-release/releases/latest/download/datagram-cli-x86_64-linux && chmod +x ./datagram-cli-x86_64-linux && ./datagram-cli-x86_64-linux run -- -key \$DATAGRAM\""
