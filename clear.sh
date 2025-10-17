@@ -1,9 +1,10 @@
 #!/bin/bash
 
-docker stop hyperlane maycrypto_browser_Dikci
-docker rm hyperlane maycrypto_browser_Dikci
-rm -rf abstract-node hyperlane_db_base .nesa .nubit-validator .nubit-light-nubit-alphatestnet-1
-rm -rf vps-browser-credentials.json
-rm -r abstract-node hyperlane_db_base .nesa .nubit-validator .nubit-light-nubit-alphatestnet-1
-docker system prune -a -f
+docker stop fizz-node
+docker rm fizz-node
+docker volume ls
+docker volume prune -f          # автоответ "y"
+docker volume rm node-storage
+docker system prune -a -f       # автоответ "y"
+rm -rf multipleNEW.sh.1 multipleforlinux multiple.sh Ocean.sh.2 Ocean.sh.3 Ocean.sh.4 Ocean.sh.5 pop privasea .spheron
 rm -rf clear.sh
