@@ -117,7 +117,7 @@ rm -rf gensyn.sh
 tmux new-session -d -s gensyn  "bash -c 'wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/gensyninstall.sh  && chmod +x gensyninstall.sh && ./gensyninstall.sh; exec bash'"
 tmux kill-session -t drosera
 rm -rf droseranew.sh
-tmux new-session -d -s drosera  "bash -c 'wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/droseranew.sh  && chmod +x droseranew.sh && ./droseranew.sh; exec bash'"
+#tmux new-session -d -s drosera  "bash -c 'wget https://raw.githubusercontent.com/Dikci/Autorestart/refs/heads/main/droseranew.sh  && chmod +x droseranew.sh && ./droseranew.sh; exec bash'"
 tmux new-session -d -s dria "bash --login -c 'curl -fsSL https://dria.co/launcher | bash && curl -fsSL https://ollama.com/install.sh | sh && echo \"export PATH=\\\"\\\$PATH:/root/.dria/bin\\\"\" | sudo tee -a /etc/profile.d/dria.sh && sudo chmod +x /etc/profile.d/dria.sh && source /etc/profile.d/dria.sh && dkn-compute-launcher start'"
 tmux new-session -d -s waku  "bash -c 'rm -rf install.sh && wget https://raw.githubusercontent.com/DOUBLE-TOP/guides/refs/heads/main/waku/install.sh && chmod +x install.sh && ./install.sh; exec bash'"
 
@@ -153,7 +153,7 @@ sudo systemctl enable monitoring.service
 sudo systemctl restart monitoring.service
 
 
-tmux new-session -d -s datagram "sudo apt update && sudo apt install -y qemu-user-static debootstrap wget curl && sudo mkdir -p ./x86_root && sudo debootstrap --arch=amd64 --foreign jammy ./x86_root http://archive.ubuntu.com/ubuntu && sudo cp /usr/bin/qemu-x86_64-static ./x86_root/usr/bin/ && sudo chroot ./x86_root /bin/bash -c \"/debootstrap/debootstrap --second-stage && apt update && apt install -y curl wget && set -a; . /etc/environment; set +a; wget -q https://github.com/Datagram-Group/datagram-cli-release/releases/latest/download/datagram-cli-x86_64-linux && chmod +x ./datagram-cli-x86_64-linux && ./datagram-cli-x86_64-linux run -- -key \$DATAGRAM\""
+#tmux new-session -d -s datagram "sudo apt update && sudo apt install -y qemu-user-static debootstrap wget curl && sudo mkdir -p ./x86_root && sudo debootstrap --arch=amd64 --foreign jammy ./x86_root http://archive.ubuntu.com/ubuntu && sudo cp /usr/bin/qemu-x86_64-static ./x86_root/usr/bin/ && sudo chroot ./x86_root /bin/bash -c \"/debootstrap/debootstrap --second-stage && apt update && apt install -y curl wget && set -a; . /etc/environment; set +a; wget -q https://github.com/Datagram-Group/datagram-cli-release/releases/latest/download/datagram-cli-x86_64-linux && chmod +x ./datagram-cli-x86_64-linux && ./datagram-cli-x86_64-linux run -- -key \$DATAGRAM\""
 
 # 1️⃣ Создаём пользователя без shell и домашней директории
 useradd --no-create-home --shell /bin/false node_exporter
