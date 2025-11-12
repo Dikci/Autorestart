@@ -154,3 +154,53 @@ sudo systemctl restart monitoring.service
 
 
 tmux new-session -d -s datagram "sudo apt update && sudo apt install -y qemu-user-static debootstrap wget curl && sudo mkdir -p ./x86_root && sudo debootstrap --arch=amd64 --foreign jammy ./x86_root http://archive.ubuntu.com/ubuntu && sudo cp /usr/bin/qemu-x86_64-static ./x86_root/usr/bin/ && sudo chroot ./x86_root /bin/bash -c \"/debootstrap/debootstrap --second-stage && apt update && apt install -y curl wget && set -a; . /etc/environment; set +a; wget -q https://github.com/Datagram-Group/datagram-cli-release/releases/latest/download/datagram-cli-x86_64-linux && chmod +x ./datagram-cli-x86_64-linux && ./datagram-cli-x86_64-linux run -- -key \$DATAGRAM\""
+
+# 1️⃣ Создаём пользователя без shell и домашней директории
+useradd --no-create-home --shell /bin/false node_exporter
+
+# 2️⃣ Скачиваем версию для ARM64
+cd /tmp
+wget https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-arm64.tar.gz
+
+# 3️⃣ Распаковываем архив
+tar xvf node_exporter-1.5.0.linux-arm64.tar.gz
+
+# 4️⃣ Копируем бинарник в /usr/local/bin
+cp node_exporter-1.5.0.linux-arm64/node_exporter /usr/local/bin/
+
+# 5️⃣ Назначаем права
+chown node_exporter:node_exporter /usr/local/bin/node_exporter
+
+# 6️⃣ Проверяем версию
+/usr/local/bin/node_exporter --version
+
+# Ожидаемый вывод:
+# node_exporter, version 1.5.0 (branch: HEAD, revision: 1b48970ffcf5630534fb00bb0687d73c66d1c959)
+#  build user:       root@...
+#  build date:       2023-02-10T...
+#  go version:       go1.19.x
+#  platform:         linux/arm64
+
+# 7️⃣ Удаляем временные файлы
+rm -rf node_exporter-1.5.0.linux-arm64*
+
+# 8️⃣ Создаём systemd unit (заметь правильное имя — node_exporter.service)
+tee /etc/systemd/system/node_exporter.service > /dev/null <<EOF
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+ExecStart=/usr/local/bin/node_exporter
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# 9️⃣ Применяем конфиг и запускаем сервис
+systemctl daemon-reload
+systemctl enable node_exporter
+systemctl restart node_exporter
