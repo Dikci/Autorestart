@@ -1,7 +1,5 @@
 #!/bin/bash
 
-sed -i '1s|^ETHEREUM_HOSTS=.*|ETHEREUM_HOSTS=https://rpc.sepolia.ethpandaops.io|' aztec-sequencer/.env
-
 #!/bin/bash
 set -eu
 
