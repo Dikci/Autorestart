@@ -1,5 +1,10 @@
 #!/bin/bash
 
+
+sed -i '/^ETHEREUM_HOSTS=/c\ETHEREUM_HOSTS=http://46.38.234.124:8545' ~/aztec-sequencer/.env
+sed -i '/^L1_CONSENSUS_HOST_URLS=/c\L1_CONSENSUS_HOST_URLS=http://46.38.234.124:3500' ~/aztec-sequencer/.env
+
+
 echo -e "${GREEN}Установка зависимостей...${NC}"
 sudo apt-get update && sudo apt-get upgrade -y
 sudo apt install -y iptables-persistent curl iptables build-essential git wget lz4 jq make gcc nano automake autoconf tmux htop nvme-cli libgbm1 pkg-config libssl-dev libleveldb-dev tar clang bsdmainutils ncdu unzip
