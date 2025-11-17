@@ -1,8 +1,8 @@
 #!/bin/bash
 
 
-sed -i '/^ETHEREUM_HOSTS=/c\ETHEREUM_HOSTS=http://46.38.234.124:8545' ~/aztec-sequencer/.env
-sed -i '/^L1_CONSENSUS_HOST_URLS=/c\L1_CONSENSUS_HOST_URLS=http://46.38.234.124:3500' ~/aztec-sequencer/.env
+sed -i '/^ETHEREUM_HOSTS=/c\ETHEREUM_HOSTS=http://152.53.52.74:8545' ~/aztec-sequencer/.env
+sed -i '/^L1_CONSENSUS_HOST_URLS=/c\L1_CONSENSUS_HOST_URLS=http://152.53.52.74:3500' ~/aztec-sequencer/.env
 
 
 echo -e "${GREEN}Установка зависимостей...${NC}"
