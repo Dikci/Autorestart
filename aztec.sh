@@ -11,3 +11,4 @@ tmux kill-session -t hyperspace
 tmux kill-session -t clear
 tmux kill-session -t gensyn
 tmux kill-session -t drosera
+exit
